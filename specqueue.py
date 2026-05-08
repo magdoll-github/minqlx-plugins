@@ -435,6 +435,7 @@ class specqueue(minqlx.Plugin):
         self.add_command(("resetqueue", "rq", "fq"), self.reset_queue, self.get_cvar("qlx_queueAdmin", int))
         self.add_command(("queuestatus", "qs"), self.get_current_settings, 5)
         self.add_command("getspec", self.get_spec, 5)
+        self.add_command("qmove", self.cmd_qmove, self.get_cvar("qlx_queueAdmin", int))
 
         # Script Variables, Lists, and Dictionaries
         self._queue = PlayerQueue()
@@ -2334,3 +2335,41 @@ class specqueue(minqlx.Plugin):
             player.tell("^3Allowed spectator tags are: ^6{}".format("^7, ^6".join(SPEC_TAGS)))
         else:
             player.tell("^3Spectator tags are not being monitored")
+            
+def cmd_qmove(self, player, msg, usage):
+        if len(msg) < 3:
+            player.reply("^6Usage: ^7!qmove <player_id> <position>")
+            return minqlx.RET_STOP_ALL
+
+        try:
+            target_id = int(msg[1])
+            new_pos = int(msg[2]) - 1 
+        except ValueError:
+            player.reply("^1Error: ^7Player ID and position must be numbers.")
+            return minqlx.RET_STOP_ALL
+
+        target_player = self.player(target_id)
+        if not target_player:
+            player.reply("^1Error: ^7Player not found.")
+            return minqlx.RET_STOP_ALL
+
+        # PROTECTION: Check if the player is currently in the game (Red, Blue, or Free)
+        # We only want to impact spectators or people already in the queue.
+        if target_player.team != "spectator":
+            player.reply("^1Error: ^7{} is currently an active player. "
+                         "Only spectators can be moved in the queue.".format(target_player.name))
+            return minqlx.RET_STOP_ALL
+
+        if new_pos < 0:
+            new_pos = 0
+
+        # This will add them to the queue if they aren't in it, 
+        # or move them to the new position if they are.
+        if self._queue.add_to_queue(target_player.steam_id, target_player, pos=new_pos):
+            self.msg("^2Queue Updated: ^7{} has been placed/moved to position {}."
+                     .format(target_player.name, new_pos + 1))
+            self.update_queue_tags()
+        else:
+            player.reply("^1Error: ^7Could not update the queue for that player.")
+
+        return minqlx.RET_STOP_ALL
