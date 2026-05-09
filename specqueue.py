@@ -2336,7 +2336,7 @@ class specqueue(minqlx.Plugin):
         else:
             player.tell("^3Spectator tags are not being monitored")
             
-def cmd_qmove(self, player, msg, usage):
+    def cmd_qmove(self, player, msg, usage):
         if len(msg) < 3:
             player.reply("^6Usage: ^7!qmove <player_id> <position>")
             return minqlx.RET_STOP_ALL
