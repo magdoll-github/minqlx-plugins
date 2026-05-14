@@ -120,7 +120,7 @@ from random import randrange
 import re
 import requests
 
-VERSION = "2.13.6"
+VERSION = "2.14.0"
 
 # Add allowed spectator tags to this list. Tags can only be 5 characters long.
 SPEC_TAGS = ("afk", "food", "away", "phone")
